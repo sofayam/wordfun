@@ -1,6 +1,6 @@
 from collections import Counter
 from typing import List, Set
-from readwords import readwords
+from readwords import readwords, get_definition
 from random import randint
 
 class ScrabbleWordFinder:
@@ -62,7 +62,7 @@ class ScrabbleWordFinder:
 
 # Usage example and performance comparison
 
-def example_usage():
+def generate(min_length=3, max_length=8, max_words=20):
 # Sample word list (in practice, load your 200,000 words)
   
     word_list = readwords('words.txt')  # Load from file
@@ -71,39 +71,48 @@ def example_usage():
     finder = ScrabbleWordFinder(word_list)
 
     # 
-    l8 = [w for w in word_list if len(w) == 8]
-    random_index = randint(0, len(l8) - 1)
+    candidates = [w for w in word_list if len(w) == max_length]
+    random_index = randint(0, len(candidates) - 1)
 
     # pick a random word from the list for testing
-    random_word = l8[random_index]
+    winner = candidates[random_index]
 
-    available_letters = random_word 
-    possible_words = finder.find_possible_words(available_letters)
+    possible_words = finder.find_possible_words(winner)
     # sort by length descending
     possible_words.sort(key=len)
 
-    print(f"Available letters: {available_letters}")
+    print(f"Available letters: {winner}")
     print(f"Possible words: {possible_words}")
 
+    # choose max_words words with a spread of lengths from the list of possible words
+    chosen_words = []
+    lengths = list(range(min_length, max_length + 1))
+    length_word_lists = [ [w for w in possible_words if len(w) == length] for length in lengths ]
+    picked_indices = [0] * len(lengths)
+
+    while len(chosen_words) < max_words:
+        added = False
+        for i, word_list in enumerate(length_word_lists):
+            idx = picked_indices[i]
+            if idx < len(word_list):
+                chosen_words.append(word_list[idx])
+                picked_indices[i] += 1
+                added = True
+                if len(chosen_words) >= max_words:
+                    break
+        if not added:
+            break  # No more words to add
+
+    chosen_words.sort(key=len)
+
+    print(f"Chosen words (spread): {chosen_words}")
+
+    letters = ''.join(sorted(winner))
+    chosen_word_dict = {w: get_definition(w) for w in chosen_words}
+
+    return (letters, chosen_word_dict)
 
 
 if __name__ == "__main__":
-    example_usage()
+    print (generate(3, 8, 20))
 
-# Performance optimization tips:
-
-# 1. Precompute letter counters for all words (done above)
-
-# 2. Use early termination in checking
-
-# 3. Consider using a trie data structure for very large word lists
-
-# 4. For repeated queries, cache results
-
-# 5. Use multiprocessing for very large datasets
-
-# Time Complexity: O(n * m) where n is number of words, m is average word length
-
-# Space Complexity: O(n * k) where k is average unique letters per word
-
-# With 200,000 words, expect sub-second performance on modern hardware

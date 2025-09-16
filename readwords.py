@@ -6,6 +6,8 @@ def readwords(filename = 'words.txt'):
     words = []
     with open(filename, 'r') as file:
         for line in file:
+            if isPlural(line):
+                continue
             first_word = line.split()[0]  # Get the first word in the line
             words.append(first_word)
             definitions[first_word] = line 
@@ -13,6 +15,17 @@ def readwords(filename = 'words.txt'):
 
 def get_definition(word):
     return definitions.get(word, "Definition not found.")
+
+def isPlural(line):
+    # if the line starts with more than one capitalized word,
+    # test that the first word is the plural of the second word
+    words = line.split()
+    if len(words) < 2: return False
+    if not words[0][0].isupper() or not words[1][0].isupper():
+        return False
+    # if last letter of first word is s return true
+    return words[0][-1] == 'S'
+ 
 
 
 if __name__ == "__main__":
