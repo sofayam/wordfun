@@ -1,0 +1,107 @@
+.App {
+  text-align: center;
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-header {
+  margin-bottom: 2rem;
+}
+
+.puzzle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.word-grids {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.word-column {
+  display: flex;
+  flex-direction: column;
+  margin: 0 1rem;
+}
+
+.word-grid {
+  display: flex;
+  margin: 0.5rem 0;
+}
+
+.grid-cell {
+  width: 40px;
+  height: 40px;
+  border: 1px solid white;
+  margin: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+}
+
+.letter-bank {
+  margin-bottom: 2rem;
+}
+
+.letter-button {
+  font-size: 1.5rem;
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  background-color: #61dafb;
+  border: none;
+  border-radius: 5px;
+}
+
+.selected-letters {
+  margin-bottom: 1rem;
+  height: 30px;
+}
+
+.selected-letter {
+  font-size: 1.5rem;
+  margin: 0 0.25rem;
+  text-transform: uppercase;
+}
+
+.controls button {
+  font-size: 1rem;
+  margin: 0 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* iPad and larger tablets */
+@media (min-width: 768px) {
+  .grid-cell {
+    width: 50px;
+    height: 50px;
+    font-size: 2rem;
+  }
+
+  .letter-button {
+    font-size: 2rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .selected-letter {
+    font-size: 2rem;
+  }
+
+  .controls button {
+    font-size: 1.5rem;
+    padding: 1rem 1.5rem;
+  }
+}
