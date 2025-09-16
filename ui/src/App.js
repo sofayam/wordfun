@@ -6,6 +6,7 @@ function App() {
   const [selectedLetters, setSelectedLetters] = useState([]);
   const [correctWords, setCorrectWords] = useState([]);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [showDefinition, setShowDefinition] = useState(null);
 
   const newGame = () => {
     fetch('http://127.0.0.1:5000/generate?min_length=3&max_length=8&max_words=20')
@@ -36,6 +37,12 @@ function App() {
     return acc;
   }, {});
 
+  const handleWordClick = (word) => {
+    if (correctWords.includes(word)) {
+      setShowDefinition(puzzle.words[word]);
+    }
+  };
+
   const handleGiveUp = () => {
     setIsGameOver(true);
     setCorrectWords(words);
@@ -51,7 +58,7 @@ function App() {
           {Object.keys(groupedWords).map(length => (
             <div key={length} className="word-column">
               {groupedWords[length].map((word, index) => (
-                <div key={index} className="word-grid">
+                <div key={index} className="word-grid" onClick={() => handleWordClick(word)}>
                   {word.split('').map((letter, i) => (
                     <div key={i} className="grid-cell">
                       {correctWords.includes(word) ? letter : ''}
@@ -97,6 +104,14 @@ function App() {
           )}
         </div>
       </div>
+      {showDefinition && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setShowDefinition(null)}>&times;</span>
+            <p>{showDefinition}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
