@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import List, Set
 from readwords import readwords, get_definition
-from random import randint
+from random import randint, shuffle
 
 class ScrabbleWordFinder:
     def __init__(self, word_list: List[str]):
@@ -40,6 +40,7 @@ class ScrabbleWordFinder:
             if self._can_make_word(word_counter, available_counter):
                 possible_words.append(word)
     
+        shuffle(possible_words)
         return possible_words
 
     def _can_make_word(self, word_counter: Counter, available_counter: Counter) -> bool:

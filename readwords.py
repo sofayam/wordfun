@@ -2,15 +2,27 @@
 
 definitions = {}
 
+brownwords = set()
+def build_brown_words():
+    global brownwords
+    with open('brown.txt', 'r') as file:
+        for line in file:
+            word = line.split()[0]  # Get the first word in the line
+            brownwords.add(word.upper())
+    print(f"Loaded {len(brownwords)} Brown words.")
+
+
 def readwords(filename = 'words.txt'):
     words = []
+    build_brown_words()
     with open(filename, 'r') as file:
         for line in file:
             if isPlural(line):
                 continue
             first_word = line.split()[0]  # Get the first word in the line
-            words.append(first_word)
-            definitions[first_word] = line 
+            if first_word in brownwords:
+                words.append(first_word)
+                definitions[first_word] = line 
     return words
 
 def get_definition(word):
