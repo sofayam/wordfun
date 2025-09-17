@@ -115,7 +115,19 @@ def generate(min_length=3, max_length=8, max_words=20):
 
     return (letters, chosen_word_dict, rejected_word_dict)
 
+def searchforgoodwords(minletters, maxletters, maxwords=30):
+    word_list = readwords()
+    finder = ScrabbleWordFinder(word_list)
+    # find all word with given length
+    rightlength =  [w for w in word_list if len(w) <= maxletters and len(w) >= minletters]
+    for w in rightlength:
+        words = finder.find_possible_words(w)
+        if len(words) <= maxwords:
+            print(f"{w}: {len(words)}")
+
+
 
 if __name__ == "__main__":
-    print(generate(3, 8, 20))
+    
+    searchforgoodwords(7, 10, 30)
 
