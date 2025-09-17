@@ -11,7 +11,7 @@ def generate_words():
     max_length = request.args.get('max_length', default=8, type=int)
     max_words = request.args.get('max_words', default=20, type=int)
 
-    letters, chosen_word_dict = generate(min_length, max_length, max_words)
+    letters, chosen_word_dict, rejects = generate(min_length, max_length, max_words)
     print  (letters, chosen_word_dict)
 
     return jsonify({
