@@ -2,6 +2,7 @@ from collections import Counter
 from typing import List, Set
 from readwords import readwords, get_definition
 from random import randint, shuffle
+from wordrecord import getnewword
 
 class ScrabbleWordFinder:
     def __init__(self, word_list: List[str]):
@@ -125,9 +126,30 @@ def searchforgoodwords(minletters, maxletters, maxwords=30):
         if len(words) <= maxwords:
             print(f"{w}: {len(words)}")
 
+def choose():
+    """
+    Get a random unused word from wordrecord, then return its letters and the chosen_word_dict.
+    Only words with length >= min_length are included.
+    """
+    min_length = 3  # Set your desired minimum length
 
+    winner = getnewword()
+    if not winner:
+        print("No unused words available.")
+        return None, {}
 
-if __name__ == "__main__":
-    
-    searchforgoodwords(7, 10, 30)
+    word_list = readwords('words.txt')
+    finder = ScrabbleWordFinder(word_list)
+
+    possible_words = finder.find_possible_words(winner)
+    # Only include words with length >= min_length
+    chosen_words = [w for w in possible_words if len(w) >= min_length]
+    chosen_words.sort(key=len)
+
+    letters = ''.join(sorted(winner))
+    chosen_word_dict = {w: get_definition(w) for w in chosen_words}
+
+    return letters, chosen_word_dict
+
+#
 

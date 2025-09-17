@@ -1,4 +1,3 @@
-Loaded 49815 Brown words.
 ABIGAIL: 20
 ABILITY: 26
 ABSCISSA: 19

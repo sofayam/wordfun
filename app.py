@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from wordfind import generate
+from wordfind import choose
+from wordrecord import markwordused
 
 app = Flask(__name__)
 CORS(app)
@@ -19,5 +20,21 @@ def generate_words():
         'words': chosen_word_dict
     })
 
+@app.route('/choose', methods=['GET'])
+def api_choose():
+    letters, chosen_word_dict = choose()
+    if letters is None:
+        return jsonify({'error': 'No unused words available.'}), 404
+    return jsonify({'letters': letters, 'words': chosen_word_dict})
+
+@app.route('/markwordused', methods=['POST'])
+def api_markwordused():
+    data = request.get_json()
+    word = data.get('word')
+    if not word:
+        return jsonify({'error': 'No word provided.'}), 400
+    markwordused(word)
+    return jsonify({'status': 'success', 'word': word})
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5050)
