@@ -64,31 +64,28 @@ class ScrabbleWordFinder:
 # Usage example and performance comparison
 
 def generate(min_length=3, max_length=8, max_words=20):
-# Sample word list (in practice, load your 200,000 words)
-  
+    # Sample word list (in practice, load your 200,000 words)
     word_list = readwords('words.txt')  # Load from file
 
     # Initialize finder
     finder = ScrabbleWordFinder(word_list)
 
-    # 
+    # Pick a random word of max_length from the list for testing
     candidates = [w for w in word_list if len(w) == max_length]
     random_index = randint(0, len(candidates) - 1)
-
-    # pick a random word from the list for testing
     winner = candidates[random_index]
 
     possible_words = finder.find_possible_words(winner)
-    # sort by length descending
+    # Sort by length descending
     possible_words.sort(key=len)
 
     print(f"Available letters: {winner}")
     print(f"Possible words: {possible_words}")
 
-    # choose max_words words with a spread of lengths from the list of possible words
+    # Choose max_words words with a spread of lengths from the list of possible words
     chosen_words = []
     lengths = list(range(min_length, max_length + 1))
-    length_word_lists = [ [w for w in possible_words if len(w) == length] for length in lengths ]
+    length_word_lists = [[w for w in possible_words if len(w) == length] for length in lengths]
     picked_indices = [0] * len(lengths)
 
     while len(chosen_words) < max_words:
@@ -108,12 +105,17 @@ def generate(min_length=3, max_length=8, max_words=20):
 
     print(f"Chosen words (spread): {chosen_words}")
 
+    # Calculate rejected words
+    rejected_words = [w for w in possible_words if w not in chosen_words]
+
+    # Create dictionaries for chosen and rejected words with their definitions
     letters = ''.join(sorted(winner))
     chosen_word_dict = {w: get_definition(w) for w in chosen_words}
+    rejected_word_dict = {w: get_definition(w) for w in rejected_words}
 
-    return (letters, chosen_word_dict)
+    return (letters, chosen_word_dict, rejected_word_dict)
 
 
 if __name__ == "__main__":
-    print (generate(3, 8, 20))
+    print(generate(3, 8, 20))
 
