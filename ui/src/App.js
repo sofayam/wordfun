@@ -9,7 +9,7 @@ function App() {
   const [showDefinition, setShowDefinition] = useState(null);
 
   const newGame = () => {
-    fetch('http://127.0.0.1:5000/generate?min_length=3&max_length=8&max_words=20')
+    fetch(`http://${window.location.hostname}:5050/choose`)
       .then(res => res.json())
       .then(data => {
         setPuzzle(data);

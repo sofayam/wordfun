@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from wordfind import choose
+from wordfind import choose, generate
 from wordrecord import markwordused
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/generate', methods=['GET'])
 def generate_words():

@@ -146,10 +146,12 @@ def choose():
     chosen_words = [w for w in possible_words if len(w) >= min_length]
     chosen_words.sort(key=len)
 
-    letters = ''.join(sorted(winner))
+   
     chosen_word_dict = {w: get_definition(w) for w in chosen_words}
 
-    return letters, chosen_word_dict
+    letters = list(winner)
+    shuffle(letters)
+    return "".join(letters), chosen_word_dict
 
 #
 
