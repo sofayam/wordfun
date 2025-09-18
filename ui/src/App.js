@@ -1,21 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './App.css';
+
+const CIRCLE_RADIUS = 120;
+const NODE_RADIUS = 30;
 
 function App() {
   const [puzzle, setPuzzle] = useState(null);
-  const [selectedLetters, setSelectedLetters] = useState([]);
   const [correctWords, setCorrectWords] = useState([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showDefinition, setShowDefinition] = useState(null);
+  const [currentWord, setCurrentWord] = useState([]);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [linePath, setLinePath] = useState([]);
+
+  const letterCircleRef = useRef(null);
 
   const newGame = () => {
     fetch(`http://${window.location.hostname}:5050/choose`)
       .then(res => res.json())
       .then(data => {
         setPuzzle(data);
-        setSelectedLetters([]);
         setCorrectWords([]);
         setIsGameOver(false);
+        setCurrentWord([]);
+        setLinePath([]);
       });
   }
 
@@ -23,19 +31,65 @@ function App() {
     newGame();
   }, []);
 
-  if (!puzzle) {
-    return <div>Loading...</div>;
-  }
+  const letterPositions = useMemo(() => {
+    if (!puzzle) return [];
+    const letters = puzzle.letters.split('');
+    const angleStep = (2 * Math.PI) / letters.length;
+    return letters.map((letter, i) => ({
+      letter,
+      x: CIRCLE_RADIUS * Math.cos(i * angleStep - Math.PI / 2) + CIRCLE_RADIUS,
+      y: CIRCLE_RADIUS * Math.sin(i * angleStep - Math.PI / 2) + CIRCLE_RADIUS,
+    }));
+  }, [puzzle]);
 
-  const words = Object.keys(puzzle.words).sort((a, b) => a.length - b.length);
-  const groupedWords = words.reduce((acc, word) => {
-    const length = word.length;
-    if (!acc[length]) {
-      acc[length] = [];
+  const words = useMemo(() => {
+    if (!puzzle) return [];
+    return Object.keys(puzzle.words).sort((a, b) => a.length - b.length);
+  }, [puzzle]);
+
+  const groupedWords = useMemo(() => {
+    return words.reduce((acc, word) => {
+      const length = word.length;
+      if (!acc[length]) acc[length] = [];
+      acc[length].push(word);
+      return acc;
+    }, {});
+  }, [words]);
+
+  const handleInteractionStart = (e) => {
+    if (isGameOver) return;
+    setIsSwiping(true);
+  };
+
+  const handleInteractionEnd = () => {
+    if (isGameOver || !isSwiping) return;
+    setIsSwiping(false);
+    const selectedWord = currentWord.map(c => c.letter).join('');
+    if (words.includes(selectedWord) && !correctWords.includes(selectedWord)) {
+      setCorrectWords([...correctWords, selectedWord]);
     }
-    acc[length].push(word);
-    return acc;
-  }, {});
+    setCurrentWord([]);
+    setLinePath([]);
+  };
+
+  const handleInteractionMove = (e) => {
+    if (!isSwiping || isGameOver) return;
+    const touch = e.touches ? e.touches[0] : e;
+    const rect = letterCircleRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    letterPositions.forEach((pos, index) => {
+      const dist = Math.sqrt(Math.pow(pos.x - x, 2) + Math.pow(pos.y - y, 2));
+      if (dist < NODE_RADIUS && !currentWord.find(c => c.index === index)) {
+        setCurrentWord([...currentWord, { letter: pos.letter, index, x: pos.x, y: pos.y }]);
+        if (currentWord.length > 0) {
+          const lastPos = currentWord[currentWord.length - 1];
+          setLinePath([...linePath, { x1: lastPos.x, y1: lastPos.y, x2: pos.x, y2: pos.y }]);
+        }
+      }
+    });
+  };
 
   const handleWordClick = (word) => {
     if (correctWords.includes(word)) {
@@ -46,6 +100,10 @@ function App() {
   const handleGiveUp = () => {
     setIsGameOver(true);
     setCorrectWords(words);
+  }
+
+  if (!puzzle) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -69,36 +127,61 @@ function App() {
             </div>
           ))}
         </div>
-        <div className="letter-bank">
-          {puzzle.letters.split('').map((letter, index) => (
-            <button
-              key={index}
-              className="letter-button"
-              onClick={() => setSelectedLetters([...selectedLetters, letter])}
-              disabled={isGameOver}
-            >
-              {letter}
-            </button>
-          ))}
+
+        <div className="current-word">
+          {currentWord.map(c => c.letter).join('')}
         </div>
-        <div className="selected-letters">
-          {selectedLetters.map((letter, index) => (
-            <span key={index} className="selected-letter">{letter}</span>
-          ))}
+
+        <div
+          className="letter-circle-container"
+          ref={letterCircleRef}
+          onMouseDown={handleInteractionStart}
+          onMouseUp={handleInteractionEnd}
+          onMouseMove={handleInteractionMove}
+          onMouseLeave={handleInteractionEnd} 
+          onTouchStart={handleInteractionStart}
+          onTouchEnd={handleInteractionEnd}
+          onTouchMove={handleInteractionMove}
+        >
+          <div className="letter-circle">
+            {letterPositions.map((pos, i) => (
+              <div
+                key={i}
+                className={`letter-node ${currentWord.find(c => c.index === i) ? 'selected' : ''}`}
+                style={{ left: pos.x - NODE_RADIUS, top: pos.y - NODE_RADIUS }}
+              >
+                {pos.letter}
+              </div>
+            ))}
+          </div>
+          <svg className="line-container">
+            {linePath.map((line, i) => {
+              const dx = line.x2 - line.x1;
+              const dy = line.y2 - line.y1;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+              return (
+                <div
+                  key={i}
+                  className="line"
+                  style={{
+                    left: line.x1,
+                    top: line.y1 - 2,
+                    width: dist,
+                    transform: `rotate(${angle}deg)`,
+                  }}
+                />
+              );
+            })}
+          </svg>
         </div>
+
         <div className="controls">
           {isGameOver ? (
             <button onClick={newGame}>New Game</button>
           ) : (
             <>
-              <button onClick={() => {
-                const selectedWord = selectedLetters.join('');
-                if (words.includes(selectedWord) && !correctWords.includes(selectedWord)) {
-                  setCorrectWords([...correctWords, selectedWord]);
-                }
-                setSelectedLetters([]);
-              }} disabled={isGameOver}>Submit</button>
-              <button onClick={() => setSelectedLetters([])} disabled={isGameOver}>Clear</button>
+              <button onClick={() => { setCurrentWord([]); setLinePath([]); }}>Clear</button>
               <button onClick={handleGiveUp}>Give Up</button>
             </>
           )}
