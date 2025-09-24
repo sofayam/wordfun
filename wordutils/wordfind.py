@@ -41,7 +41,7 @@ class ScrabbleWordFinder:
             if self._can_make_word(word_counter, available_counter):
                 possible_words.append(word)
     
-        shuffle(possible_words)
+        # shuffle(possible_words)
         return possible_words
 
     def _can_make_word(self, word_counter: Counter, available_counter: Counter) -> bool:
@@ -124,7 +124,9 @@ def searchforgoodwords(minletters, maxletters, maxwords=30):
     for w in rightlength:
         words = finder.find_possible_words(w)
         if len(words) <= maxwords:
-            print(f"{w}: {len(words)}")
+            # print the word, a colon and its possible words separated by spaces
+
+            print(f"{w}: {' '.join(words)}")
 
 def choose():
     """
@@ -153,5 +155,7 @@ def choose():
     shuffle(letters)
     return "".join(letters), chosen_word_dict
 
-#
+
+if __name__ == "__main__":
+    searchforgoodwords(6,12,40)
 

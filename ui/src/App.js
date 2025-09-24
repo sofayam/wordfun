@@ -16,7 +16,7 @@ function App() {
   const letterCircleRef = useRef(null);
 
   const newGame = () => {
-    fetch(`http://${window.location.hostname}:5050/choose`)
+    fetch(`/choose`)
       .then(res => res.json())
       .then(data => {
         setPuzzle(data);

@@ -38,20 +38,6 @@ def api_markwordused():
     return jsonify({'status': 'success', 'word': word})
 
 if __name__ == '__main__':
-    def get_local_ip():
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except Exception:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
 
-    ip_address = get_local_ip()
-    print("====================================================")
-    print(f" Access the app from another machine on your network at: http://{ip_address}:5050")
-    print("====================================================")
-    app.run(host='0.0.0.0', debug=True, port=5050)
+
+    app.run(port=5050)
