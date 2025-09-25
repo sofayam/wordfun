@@ -13,81 +13,48 @@ app.use(express.static(path.join(__dirname, 'ui/build')));
 
 // Define the /choose endpoint
 app.get('/choose', (req, res) => {
+  const wordutilsPath = path.join(__dirname, 'wordutils');
+  const anagramsFile = path.join(wordutilsPath, 'allanagrams.txt');
+  const wordsFile = path.join(wordutilsPath, 'words.txt');
 
-    // there are two important files in the subdirectory "wordutils"
-    // allanagrams.txt and words.txt
-    // to create a return value procede as follows:
-   // Take a random line from allanagrams.txt
-   // - use the first word in the line as the value for letters, but with shuffled letters
-   // - use the rest of the words in the line, after the colon to create 
-   // the "words" dictionary. That dictionary should have the words as keys 
-   // and the values should be the definitions which you can find
-   // in words.txt. 
+  // Read the files
+  const anagrams = fs.readFileSync(anagramsFile, 'utf-8').split('\n').filter(Boolean);
+  const wordsData = fs.readFileSync(wordsFile, 'utf-8').split('\n').filter(Boolean);
 
-    // allanagrams.txt has lines like this:
-    // palmapleap: pal, map, leap, pale, plea, maple, apple
-    // words.txt has lines like this:
-    // pal A friend
-    // map A location guide
-    // leap To jump
- 
-    // return a JSON object with letters and words
-
-  // Example response (for the word "example"):
-  //  res.json({
-  //  letters: 'pleaamex',
-  //  words: { example: 'an illustration'  pal: 'A friend', map: 'A location guide', leap: 'To jump' }
-  // });
-  let letters, words = getResponse()
-  res.json ({letters, words})
-});
-
-
-getResponse = () => {
-  // read allanagrams.txt
-  allangrams = fs.readFileSync('wordutils/allanagrams.txt', 'utf-8').split('\n');
-  // pick a random line
-  let randomLine = allangrams[Math.floor(Math.random() * allangrams.length)];
-  // split on colon
-  let parts = randomLine.split(':');
-
-  // take first word
-  let firstWord = parts[0].trim();
-  // shuffle letters
-  let shuffled = firstWord.split('').sort(() => Math.random() - 0.5).join('');
-
-  // take rest of words
-  let wordList = parts[1].split(',').map(w => w.trim());
-
-  // read words.txt into a dictionary
-  let wordLines = fs.readFileSync('wordutils/words.txt', 'utf-8').split('\n');
-  let wordDict = {};
-  wordLines.forEach(line => {
-    let [word, ...definitionParts] = line.split(' ');
-    wordDict[word] = line;
+  // Parse the words.txt into a dictionary
+  const definitions = {};
+  wordsData.forEach(line => {
+    const [key, ...rest] = line.split(' '); // Split the line into the first word and the rest
+    definitions[key.trim()] = line.trim(); // Use the first word as the key, store the whole line as the value
   });
 
-  // create words dictionary for response
-  let words = {};
-  wordList.forEach(word => {
-    if (wordDict[word]) {
-      words[word] = wordDict[word];
+  // Pick a random line from allanagrams.txt
+  const randomLine = anagrams[Math.floor(Math.random() * anagrams.length)];
+  const [letters, wordList] = randomLine.split(':');
+  const shuffledLetters = letters.split('').sort(() => Math.random() - 0.5).join('');
+
+  // Create the words dictionary
+  const words = {};
+  wordList.split(' ').map(word => word.trim()).forEach(word => {
+    if (definitions[word]) {
+      words[word] = definitions[word]; // Include the full line from words.txt
     }
   });
 
-  return (shuffled,words)
-}
+  // Debugging logs
+  console.log('Chosen letters:', shuffledLetters);
+  console.log('Words:', words);
+
+  // Return the response
+  res.json({
+    letters: shuffledLetters,
+    words: words,
+  });
+});
 
 // Catch-all to serve React's index.html for any other routes
 app.get('*', (req, res) => {
-  try {
-    const filePath = path.resolve(__dirname, 'ui/build', 'index.html');
-    console.log(`Serving file: ${filePath}`);
-    res.sendFile(filePath);
-  } catch (err) {
-    console.error('Error serving index.html:', err);
-    res.status(500).send('Internal Server Error');
-  }
+  res.sendFile(path.resolve(__dirname, 'ui/build', 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {

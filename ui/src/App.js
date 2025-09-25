@@ -19,13 +19,17 @@ function App() {
     fetch(`/choose`)
       .then(res => res.json())
       .then(data => {
+        console.log('Fetched puzzle data:', data); // Log the response
         setPuzzle(data);
         setCorrectWords([]);
         setIsGameOver(false);
         setCurrentWord([]);
         setLinePath([]);
+      })
+      .catch(err => {
+        console.error('Error fetching /choose:', err);
       });
-  }
+  };
 
   useEffect(() => {
     newGame();
