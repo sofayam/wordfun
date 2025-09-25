@@ -24,8 +24,9 @@ app.get('/choose', (req, res) => {
   // Parse the words.txt into a dictionary
   const definitions = {};
   wordsData.forEach(line => {
-    const [key, ...rest] = line.split(' '); // Split the line into the first word and the rest
-    definitions[key.trim()] = line.trim(); // Use the first word as the key, store the whole line as the value
+    // find the first word in the line up to the first space or tab
+    const key = line.split(/\s+/)[0];
+    definitions[key] = line; // Use the first word as the key, store the whole line as the value
   });
 
   // Pick a random line from allanagrams.txt

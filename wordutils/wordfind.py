@@ -2,58 +2,49 @@ from collections import Counter
 from typing import List, Set
 from readwords import readwords, get_definition
 from random import randint, shuffle
-from wordrecord import getnewword
 
 class ScrabbleWordFinder:
     def __init__(self, word_list: List[str]):
-    
-
         self.word_list = word_list
         # Preprocess: create letter frequency counters for all words
         self.word_counters = {}
         for word in word_list:
-        # Convert to lowercase and create counter
-            word_lower = word.lower()
-            self.word_counters[word_lower] = Counter(word_lower)
-
+            self.word_counters[word] = Counter(word)
 
     def find_possible_words(self, available_letters: str) -> List[str]:
         """
-    Find all words that can be made with the given letters.
-    
-    Args:
-        available_letters: String of available letters (e.g., "hello")
-    
-    Returns:
-        List of words that can be made
+        Find all words that can be made with the given letters.
+
+        Args:
+            available_letters: String of available letters (e.g., "HELLO")
+
+        Returns:
+            List of words that can be made
         """
         # Create counter for available letters
-        available_counter = Counter(available_letters.lower())
-    
+        available_counter = Counter(available_letters)
+
         possible_words = []
-    
+
         # Check each word
         for word in self.word_list:
-            word_lower = word.lower()
-            word_counter = self.word_counters[word_lower]
-        
+            word_counter = self.word_counters[word]
             # Check if word can be made with available letters
             if self._can_make_word(word_counter, available_counter):
                 possible_words.append(word)
-    
-        # shuffle(possible_words)
+
         return possible_words
 
     def _can_make_word(self, word_counter: Counter, available_counter: Counter) -> bool:
         """
-    Check if a word can be made with available letters.
-    
-    Args:
-        word_counter: Counter of letters needed for the word
-        available_counter: Counter of available letters
-    
-    Returns:
-        True if word can be made, False otherwise
+        Check if a word can be made with available letters.
+
+        Args:
+            word_counter: Counter of letters needed for the word
+            available_counter: Counter of available letters
+
+        Returns:
+            True if word can be made, False otherwise
         """
         # For each letter in the word, check if we have enough available
         for letter, needed_count in word_counter.items():
@@ -62,98 +53,18 @@ class ScrabbleWordFinder:
         return True
 
 
-# Usage example and performance comparison
-
-def generate(min_length=3, max_length=8, max_words=20):
-    # Sample word list (in practice, load your 200,000 words)
-    word_list = readwords('words.txt')  # Load from file
-
-    # Initialize finder
-    finder = ScrabbleWordFinder(word_list)
-
-    # Pick a random word of max_length from the list for testing
-    candidates = [w for w in word_list if len(w) == max_length]
-    random_index = randint(0, len(candidates) - 1)
-    winner = candidates[random_index]
-
-    possible_words = finder.find_possible_words(winner)
-    # Sort by length descending
-    possible_words.sort(key=len)
-
-    print(f"Available letters: {winner}")
-    print(f"Possible words: {possible_words}")
-
-    # Choose max_words words with a spread of lengths from the list of possible words
-    chosen_words = []
-    lengths = list(range(min_length, max_length + 1))
-    length_word_lists = [[w for w in possible_words if len(w) == length] for length in lengths]
-    picked_indices = [0] * len(lengths)
-
-    while len(chosen_words) < max_words:
-        added = False
-        for i, word_list in enumerate(length_word_lists):
-            idx = picked_indices[i]
-            if idx < len(word_list):
-                chosen_words.append(word_list[idx])
-                picked_indices[i] += 1
-                added = True
-                if len(chosen_words) >= max_words:
-                    break
-        if not added:
-            break  # No more words to add
-
-    chosen_words.sort(key=len)
-
-    print(f"Chosen words (spread): {chosen_words}")
-
-    # Calculate rejected words
-    rejected_words = [w for w in possible_words if w not in chosen_words]
-
-    # Create dictionaries for chosen and rejected words with their definitions
-    letters = ''.join(sorted(winner))
-    chosen_word_dict = {w: get_definition(w) for w in chosen_words}
-    rejected_word_dict = {w: get_definition(w) for w in rejected_words}
-
-    return (letters, chosen_word_dict, rejected_word_dict)
 
 def searchforgoodwords(minletters, maxletters, maxwords=30):
     word_list = readwords()
     finder = ScrabbleWordFinder(word_list)
-    # find all word with given length
     rightlength =  [w for w in word_list if len(w) <= maxletters and len(w) >= minletters]
     for w in rightlength:
         words = finder.find_possible_words(w)
+        # get rid of all words less than 3 letters
+        words = [word for word in words if len(word) >= 3]
         if len(words) <= maxwords:
-            # print the word, a colon and its possible words separated by spaces
-
             print(f"{w}: {' '.join(words)}")
 
-def choose():
-    """
-    Get a random unused word from wordrecord, then return its letters and the chosen_word_dict.
-    Only words with length >= min_length are included.
-    """
-    min_length = 3  # Set your desired minimum length
-
-    winner = getnewword()
-    if not winner:
-        print("No unused words available.")
-        return None, {}
-
-    word_list = readwords('words.txt')
-    finder = ScrabbleWordFinder(word_list)
-
-    possible_words = finder.find_possible_words(winner)
-    # Only include words with length >= min_length
-    chosen_words = [w for w in possible_words if len(w) >= min_length]
-    chosen_words.sort(key=len)
-
-   
-    chosen_word_dict = {w: get_definition(w) for w in chosen_words}
-
-    letters = list(winner)
-    shuffle(letters)
-    return "".join(letters), chosen_word_dict
 
 
 if __name__ == "__main__":
