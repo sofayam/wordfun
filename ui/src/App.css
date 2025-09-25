@@ -56,6 +56,7 @@
   width: 300px;
   height: 300px;
   margin: 2rem 0;
+  touch-action: none;
 }
 
 .letter-circle {
@@ -179,4 +180,27 @@
     font-size: 1.5rem;
     padding: 1rem 1.5rem;
   }
+}
+
+.word-grid.found .grid-cell {
+  animation: found-cell-pop 0.5s ease-out;
+}
+
+@keyframes found-cell-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.word-grid.missed .grid-cell {
+  color: red;
+  border-color: red;
 }

@@ -7,11 +7,13 @@ const NODE_RADIUS = 30;
 function App() {
   const [puzzle, setPuzzle] = useState(null);
   const [correctWords, setCorrectWords] = useState([]);
+  const [userFoundWords, setUserFoundWords] = useState([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showDefinition, setShowDefinition] = useState(null);
   const [currentWord, setCurrentWord] = useState([]);
   const [isSwiping, setIsSwiping] = useState(false);
   const [linePath, setLinePath] = useState([]);
+  const [lastFoundWord, setLastFoundWord] = useState('');
 
   const letterCircleRef = useRef(null);
 
@@ -22,6 +24,7 @@ function App() {
         console.log('Fetched puzzle data:', data); // Log the response
         setPuzzle(data);
         setCorrectWords([]);
+        setUserFoundWords([]);
         setIsGameOver(false);
         setCurrentWord([]);
         setLinePath([]);
@@ -51,13 +54,14 @@ function App() {
     return Object.keys(puzzle.words).sort((a, b) => a.length - b.length);
   }, [puzzle]);
 
-  const groupedWords = useMemo(() => {
-    return words.reduce((acc, word) => {
-      const length = word.length;
-      if (!acc[length]) acc[length] = [];
-      acc[length].push(word);
-      return acc;
-    }, {});
+  const columns = useMemo(() => {
+    const numColumns = 4;
+    if (!words.length) return [];
+    const newColumns = Array.from({ length: numColumns }, () => []);
+    words.forEach((word, index) => {
+      newColumns[index % numColumns].push(word);
+    });
+    return newColumns;
   }, [words]);
 
   const handleInteractionStart = (e) => {
@@ -70,7 +74,10 @@ function App() {
     setIsSwiping(false);
     const selectedWord = currentWord.map(c => c.letter).join('');
     if (words.includes(selectedWord) && !correctWords.includes(selectedWord)) {
+      setUserFoundWords([...userFoundWords, selectedWord]);
       setCorrectWords([...correctWords, selectedWord]);
+      setLastFoundWord(selectedWord);
+      setTimeout(() => setLastFoundWord(''), 500);
     }
     setCurrentWord([]);
     setLinePath([]);
@@ -117,17 +124,20 @@ function App() {
       </header>
       <div className="puzzle">
         <div className="word-grids">
-          {Object.keys(groupedWords).map(length => (
-            <div key={length} className="word-column">
-              {groupedWords[length].map((word, index) => (
-                <div key={index} className="word-grid" onClick={() => handleWordClick(word)}>
-                  {word.split('').map((letter, i) => (
-                    <div key={i} className="grid-cell">
-                      {correctWords.includes(word) ? letter : ''}
-                    </div>
-                  ))}
-                </div>
-              ))}
+          {columns.map((column, colIndex) => (
+            <div key={colIndex} className="word-column">
+              {column.map((word, wordIndex) => {
+                const isMissed = isGameOver && !userFoundWords.includes(word);
+                return (
+                  <div key={wordIndex} className={`word-grid ${lastFoundWord === word ? 'found' : ''} ${isMissed ? 'missed' : ''}`} onClick={() => handleWordClick(word)}>
+                    {word.split('').map((letter, i) => (
+                      <div key={i} className="grid-cell">
+                        {correctWords.includes(word) ? letter : ''}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
