@@ -29,9 +29,20 @@ app.get('/choose', (req, res) => {
     definitions[key] = line; // Use the first word as the key, store the whole line as the value
   });
 
-  // Pick a random line from allanagrams.txt
-  const randomLine = anagrams[Math.floor(Math.random() * anagrams.length)];
-  const [letters, wordList] = randomLine.split(':');
+
+
+  // Pick a random line from allanagrams.txt, repeat the process until we find one with less than
+  // MAXWORDS words
+  const MAXWORDS = 24;
+  let randomLine;
+  let wordList;
+  let letters;
+  do {
+    randomLine = anagrams[Math.floor(Math.random() * anagrams.length)];
+    [ , wordList] = randomLine.split(':');
+  } while (wordList.split(' ').length > MAXWORDS);
+  // const randomLine = anagrams[Math.floor(Math.random() * anagrams.length)];
+  [letters, wordList] = randomLine.split(':');
   const shuffledLetters = letters.split('').sort(() => Math.random() - 0.5).join('');
 
   // Create the words dictionary
