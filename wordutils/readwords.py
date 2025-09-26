@@ -2,31 +2,38 @@
 
 definitions = {}
 
-brownwords = set()
-def build_brown_words():
-    global brownwords
-    with open('brown.txt', 'r') as file:
-        for line in file:
-            word = line.split()[0]  # Get the first word in the line
-            brownwords.add(word.upper())
-    print(f"Loaded {len(brownwords)} Brown words.")
 
-
-def readwords(filename = 'words.txt'):
-    words = []
-    build_brown_words()
+def buildsubset(filename):
+    res = set()
     with open(filename, 'r') as file:
         for line in file:
+            word = line.split()[0]  # Get the first word in the line
+            res.add(word.upper())
+    return res
+    
+    
+
+
+def readwords(ignore=False):
+    words = []
+    subset = buildsubset("words20k.txt")
+    with open("words.txt", 'r') as file:
+        for line in file:
+            if hasBracket(line):
+                continue
             if isPlural(line):
                 continue
             first_word = line.split()[0]  # Get the first word in the line
-            if first_word in brownwords:
+            if ignore or (first_word in subset):
                 words.append(first_word)
                 definitions[first_word] = line 
     return words
 
 def get_definition(word):
     return definitions.get(word, "Definition not found.")
+
+def hasBracket(line):
+    return '(' in line or ')' in line 
 
 def isPlural(line):
     # if the line starts with more than one capitalized word,
@@ -42,4 +49,4 @@ def isPlural(line):
 
 if __name__ == "__main__":
     filename = 'words.txt'  # Replace with your file path
-    word_list = readwords(filename)
+    word_list = readwords()

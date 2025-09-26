@@ -1,6 +1,6 @@
 from collections import Counter
 from typing import List, Set
-from readwords import readwords, get_definition
+from readwords import readwords
 from random import randint, shuffle
 
 class ScrabbleWordFinder:
@@ -54,19 +54,41 @@ class ScrabbleWordFinder:
 
 
 
+from multiprocessing import Pool
+from functools import partial
+
+# Global finder for each worker process
+finder = None
+
+def init_worker(word_list):
+    """Initialize the ScrabbleWordFinder for each worker process."""
+    global finder
+    finder = ScrabbleWordFinder(word_list)
+
+def process_word(word, maxwords):
+    """Worker function to find sub-anagrams for a single word."""
+    global finder
+    words = finder.find_possible_words(word)
+    words = [w for w in words if len(w) >= 3]
+    if len(words) <= maxwords:
+        return f"{word}: {' '.join(words)}"
+    return None
+
 def searchforgoodwords(minletters, maxletters, maxwords=30):
     word_list = readwords()
-    finder = ScrabbleWordFinder(word_list)
-    rightlength =  [w for w in word_list if len(w) <= maxletters and len(w) >= minletters]
-    for w in rightlength:
-        words = finder.find_possible_words(w)
-        # get rid of all words less than 3 letters
-        words = [word for word in words if len(word) >= 3]
-        if len(words) <= maxwords:
-            print(f"{w}: {' '.join(words)}")
+    rightlength = [w for w in word_list if len(w) <= maxletters and len(w) >= minletters]
 
+    # Create a partial function to fix the 'maxwords' argument
+    task_func = partial(process_word, maxwords=maxwords)
 
+    # Initialize the pool with the word list for each worker
+    with Pool(initializer=init_worker, initargs=(word_list,)) as pool:
+        # Use imap_unordered to get results as they are ready
+        results = pool.imap_unordered(task_func, rightlength)
+        for result in results:
+            if result:
+                print(result)
 
 if __name__ == "__main__":
-    searchforgoodwords(6,12,40)
+    searchforgoodwords(6, 12, 40)
 
